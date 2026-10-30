@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace hazelify.Lawnmower
 {
-    [BepInPlugin("hazelify.Lawnmower", "Lawnmower", "1.0.0")]
+    [BepInPlugin("hazelify.Lawnmower", "Lawnmower", "1.1.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static string masterSwitchCategory = "Master switches";
