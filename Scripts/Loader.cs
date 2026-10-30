@@ -11,6 +11,8 @@ namespace hazelify.Lawnmower.Scripts
         private GameWorld _gameWorld;
         private Player _player;
         public Lawnmower _lawnMowerScript;
+        public Hedgemower _hedgeMowerScript;
+        public Treefeller _treeFellerScript;
 
         private void Awake()
         {
@@ -45,6 +47,8 @@ namespace hazelify.Lawnmower.Scripts
         private void setupScript()
         {
             _lawnMowerScript = _gameWorld.gameObject.AddComponent<Lawnmower>();
+            _hedgeMowerScript = _gameWorld.gameObject.AddComponent<Hedgemower>();
+            _treeFellerScript = _gameWorld.gameObject.AddComponent<Treefeller>();
         }
     }
 }

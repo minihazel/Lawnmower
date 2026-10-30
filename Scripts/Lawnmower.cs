@@ -26,6 +26,7 @@ namespace hazelify.Lawnmower.Scripts
         }
 
         private List<GPUInstancerDetailManager> GrassObjects;
+        //private List<GPUInstancerDetailManager> AllObjects;
         private bool grassWasMowed = false;
 
         //private void Start()
@@ -39,25 +40,28 @@ namespace hazelify.Lawnmower.Scripts
 
         private void Awake()
         {
-            FetchObjects();
-            if (Plugin.masterSwitch.Value) deleteObjects();
-            Plugin.masterSwitch.SettingChanged += HandleSettingChanged;
+            fetchObjects();
+            if (Plugin.lawn_masterSwitch.Value) deleteObjects();
+            Plugin.lawn_masterSwitch.SettingChanged += HandleSettingChanged;
         }
 
         private void OnDestroy()
         {
-            Plugin.masterSwitch.SettingChanged -= HandleSettingChanged;
+            Plugin.lawn_masterSwitch.SettingChanged -= HandleSettingChanged;
         }
 
         private void HandleSettingChanged(object a, EventArgs b)
         {
-            if (Plugin.masterSwitch.Value)
+            if (Plugin.useHotkeys.Value)
             {
-                deleteObjects();
-            }
-            else
-            {
-                restoreObjects();
+                if (Plugin.lawn_masterSwitch.Value)
+                {
+                    deleteObjects();
+                }
+                else
+                {
+                    restoreObjects();
+                }
             }
         }
 
@@ -92,7 +96,7 @@ namespace hazelify.Lawnmower.Scripts
         //    deleteObjects();
         //}
 
-        private void FetchObjects()
+        private void fetchObjects()
         {
             GrassObjects = FindObjectsOfType<GPUInstancerDetailManager>().Where(i => i.IsEnabledUniversal()).ToList();
         }
