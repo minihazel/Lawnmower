@@ -47,7 +47,7 @@ namespace hazelify.Lawnmower.Scripts
             player = _gameWorld.MainPlayer;
 
             fetchObjects();
-            if (Plugin.hedge_masterSwitch.Value) deleteObjects();
+            if (!Plugin.trees_masterSwitch.Value && Plugin.hedge_masterSwitch.Value) deleteObjects();
             Plugin.hedge_masterSwitch.SettingChanged += HandleSettingChanged;
         }
 
@@ -58,14 +58,17 @@ namespace hazelify.Lawnmower.Scripts
 
         private void HandleSettingChanged(object a, EventArgs b)
         {
-            if (Plugin.hedge_masterSwitch.Value)
+            if (!Plugin.trees_masterSwitch.Value)
             {
-                fetchObjects();
-                deleteObjects();
-            }
-            else
-            {
-                restoreObjects();
+                if (Plugin.hedge_masterSwitch.Value)
+                {
+                    fetchObjects();
+                    deleteObjects();
+                }
+                else
+                {
+                    restoreObjects();
+                }
             }
         }
 
@@ -81,23 +84,33 @@ namespace hazelify.Lawnmower.Scripts
             hedgesWereTrimmed = false;
         }
 
+        private static int reboundNumber(int slider)
+        {
+            return Mathf.RoundToInt(Mathf.Lerp(51f, 99f, slider / 100f));
+        }
+
         private void fetchObjects()
         {
             currentMap = _gameWorld.LocationId.ToLower();
 
             if (availableMaps.Contains(currentMap))
             {
+                string[] exclude = { "human", "dead", "abandoned", "treatment" };
+                string[] include = { "filbert", "plant", "fern" };
+
                 var currentMapObjects = FindObjectsOfType<GameObject>()
-                    .Where(x => !x.name.ToLower().Contains("human") &&
-                    (x.name.ToLower().Contains("filbert") ||
-                    x.name.ToLower().Contains("plant") ||
-                    x.name.ToLower().Contains("fern"))).ToList();
+                    .Where(x =>
+                    {
+                        string n = x.name.ToLower();
+                        return !exclude.Any(n.Contains) && include.Any(n.Contains);
+                    })
+                    .ToList();
 
                 AllObjects = currentMapObjects;
 
                 if (Plugin.hedge_useRemovePercentage.Value && Plugin.hedge_removePercentage.Value > 0)
                 {
-                    int currentPercentage = Plugin.hedge_removePercentage.Value;
+                    int currentPercentage = reboundNumber(Plugin.hedge_removePercentage.Value);
                     int amountToRemove = Mathf.RoundToInt(currentMapObjects.Count * currentPercentage / 100f);
 
                     BushObjects = currentMapObjects

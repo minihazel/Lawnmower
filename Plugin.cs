@@ -4,12 +4,14 @@ using BepInEx.Logging;
 using hazelify.Lawnmower.Patches;
 using hazelify.Lawnmower.Scripts;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 namespace hazelify.Lawnmower
 {
     [BepInPlugin("hazelify.Lawnmower", "Lawnmower", "1.1.0")]
     public class Plugin : BaseUnityPlugin
     {
+        internal static ConfigurationManagerAttributes hedgeAttributes = new ConfigurationManagerAttributes();
         public static string masterSwitchCategory = "Master switches";
         public static string generalCategory = "General";
         public static string hotkeysCategory = "Hotkeys";
@@ -35,12 +37,19 @@ namespace hazelify.Lawnmower
         public static ConfigEntry<KeyboardShortcut> hotkey_hedgeMasterSwitch;
         public static ConfigEntry<KeyboardShortcut> hotkey_treesMasterSwitch;
 
+        internal static void updateHedgesRestraints()
+        {
+            hedgeAttributes.ReadOnly = trees_masterSwitch.Value;
+        }
+
         private void Awake()
         {
             LogSource = Logger;
             InitConfiguration();
+
             new Patcher().Enable();
             LogSource.LogInfo($"[Lawnmower] Loaded!");
+            updateHedgesRestraints();
         }
 
         private void Update()
@@ -54,6 +63,7 @@ namespace hazelify.Lawnmower
 
                 if (Plugin.hotkey_hedgeMasterSwitch.Value.IsDown())
                 {
+                    if (Plugin.trees_masterSwitch.Value) return;
                     Plugin.hedge_masterSwitch.Value = !Plugin.hedge_masterSwitch.Value;
                 }
 
@@ -66,6 +76,7 @@ namespace hazelify.Lawnmower
 
         private void InitConfiguration()
         {
+
             // toggles
             lawn_masterSwitch = Config.Bind(
                 masterSwitchCategory, "Lawnmower",
@@ -78,6 +89,7 @@ namespace hazelify.Lawnmower
                 masterSwitchCategory, "Hedge trimmer",
                 false,
                 new ConfigDescription("Removes all the hedges (bushes) on the map; can be toggled in realtime and configured", null,
+                hedgeAttributes,
                 new ConfigurationManagerAttributes { Order = 3 })
             );
 

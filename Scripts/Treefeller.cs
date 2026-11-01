@@ -44,9 +44,11 @@ namespace hazelify.Lawnmower.Scripts
             if (_gameWorld == null) return;
             player = _gameWorld.MainPlayer;
 
+            applyHedgeAttributes();
             fetchObjects();
             if (Plugin.trees_masterSwitch.Value) deleteObjects();
             Plugin.trees_masterSwitch.SettingChanged += HandleSettingChanged;
+
         }
 
         private void OnDestroy()
@@ -54,10 +56,19 @@ namespace hazelify.Lawnmower.Scripts
             Plugin.trees_masterSwitch.SettingChanged -= HandleSettingChanged;
         }
 
+        private void applyHedgeAttributes()
+        {
+            Plugin.hedgeAttributes.ReadOnly = Plugin.trees_masterSwitch.Value;
+        }
+
         private void HandleSettingChanged(object a, EventArgs b)
         {
+            applyHedgeAttributes();
+
             if (Plugin.trees_masterSwitch.Value)
             {
+                Plugin.hedge_masterSwitch.Value = false;
+
                 fetchObjects();
                 deleteObjects();
             }
@@ -79,23 +90,33 @@ namespace hazelify.Lawnmower.Scripts
             treesWereFelled = false;
         }
 
+        private static int reboundNumber(int slider)
+        {
+            return Mathf.RoundToInt(Mathf.Lerp(51f, 99f, slider / 100f));
+        }
+
         private void fetchObjects()
         {
             currentMap = _gameWorld.LocationId.ToLower();
 
             if (availableMaps.Contains(currentMap))
             {
+                string[] exclude = { "human", "dead", "abandoned" };
+                string[] include = { "pine", "birch", "tree" };
+
                 var currentMapObjects = FindObjectsOfType<GameObject>()
-                    .Where(x => !x.name.ToLower().Contains("human") &&
-                    (x.name.ToLower().Contains("pine") ||
-                    x.name.ToLower().Contains("birch") ||
-                    x.name.ToLower().Contains("tree"))).ToList();
+                    .Where(x =>
+                    {
+                        string n = x.name.ToLower();
+                        return !exclude.Any(n.Contains) && include.Any(n.Contains);
+                    })
+                .ToList();
 
                 AllObjects = currentMapObjects;
 
                 if (Plugin.trees_useRemovePercentage.Value && Plugin.trees_removePercentage.Value > 0)
                 {
-                    int currentPercentage = Plugin.trees_removePercentage.Value;
+                    int currentPercentage = reboundNumber(Plugin.trees_removePercentage.Value);
                     int amountToRemove = Mathf.RoundToInt(currentMapObjects.Count * currentPercentage / 100f);
 
                     TreeObjects = currentMapObjects
